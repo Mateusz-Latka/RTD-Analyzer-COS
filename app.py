@@ -15,6 +15,11 @@ from rtd_analyzer.data_processing import (
 )
 
 
+def _render_author_footer() -> None:
+    st.markdown("---")
+    st.caption("Autor: Mateusz Łatka | Indeks: 305382 | ml305382@student.polsl.pl")
+
+
 def _plot_curves(
     df: pd.DataFrame,
     channels: list[str],
@@ -43,12 +48,14 @@ def main() -> None:
     uploaded_file = st.file_uploader("Wczytaj plik CSV", type=["csv"])
     if uploaded_file is None:
         st.info("Wybierz plik CSV, aby rozpocząć analizę.")
+        _render_author_footer()
         return
 
     try:
         raw_df = load_measurements(uploaded_file.getvalue())
     except Exception as exc:
         st.error(f"Błąd wczytania danych: {exc}")
+        _render_author_footer()
         return
 
     channels = channel_columns(raw_df)
@@ -85,6 +92,7 @@ def main() -> None:
 
     if len(selected_channels) < 2:
         st.warning("Wybierz co najmniej 2 kanały.")
+        _render_author_footer()
         return
 
     c_infinity_mode = st.radio(
@@ -104,6 +112,7 @@ def main() -> None:
         norm_df = normalize_dimensionless(window_df, selected_channels, c_infinity_mode)
     except Exception as exc:
         st.error(f"Błąd przetwarzania: {exc}")
+        _render_author_footer()
         return
 
     st.subheader("Wykres 1: czas [s] - przewodność [µS/cm]")
@@ -183,6 +192,7 @@ def main() -> None:
         file_name=f"{base_name}_wykres_Cstar.png",
         mime="image/png",
     )
+    _render_author_footer()
 
 
 if __name__ == "__main__":
