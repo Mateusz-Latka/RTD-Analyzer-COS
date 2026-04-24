@@ -1,0 +1,204 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[polish]{babel}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+
+\geometry{margin=2.5cm}
+\onehalfspacing
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[L]{Mateusz Łatka}
+\fancyfoot[C]{ml305382@student.polsl.pl}
+\fancyfoot[R]{Indeks: 305382}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\fancypagestyle{plain}{%
+  \fancyhf{}
+  \fancyfoot[L]{Mateusz Łatka}
+  \fancyfoot[C]{ml305382@student.polsl.pl}
+  \fancyfoot[R]{Indeks: 305382}
+  \renewcommand{\headrulewidth}{0pt}
+  \renewcommand{\footrulewidth}{0.4pt}
+}
+
+\title{%
+Opracowanie i wykonanie programu do obróbki wyników badań\\
+uzyskanych z modeli fizycznych agregatów metalurgicznych COS}
+\author{Mateusz Łatka}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{fancy}
+\newpage
+
+\tableofcontents
+\newpage
+
+\section{Wstęp}
+W ramach ćwiczenia laboratoryjnego wykonano aplikację do obróbki danych eksperymentalnych uzyskanych z modelu wodnego urządzenia ciągłego odlewania stali (COS). Program wspiera analizę krzywych rezydencji RTD typu F na podstawie rejestrowanej przewodności elektrycznej na wylewach kadzi pośredniej.
+
+Zakres projektu został opracowany na podstawie materiałów przekazanych do zajęć (folder \texttt{PDF}), w szczególności dokumentu \textit{Wytyczne Program COS}.
+
+\section{Cel i zakres pracy}
+\subsection{Cel}
+Celem projektu było przygotowanie działającego oprogramowania, które:
+\begin{enumerate}
+    \item wczytuje dane pomiarowe z plików CSV,
+    \item umożliwia odrzucenie wskazanej liczby pomiarów oraz ręczne określenie początku analizy,
+    \item rysuje krzywe przewodności w funkcji czasu,
+    \item przelicza dane do postaci bezwymiarowej,
+    \item wyznacza strefę przejściową na podstawie poziomów 0{,}2 oraz 0{,}8,
+    \item zapisuje wyniki do plików.
+\end{enumerate}
+
+\subsection{Zakres funkcjonalny}
+Program realizuje wszystkie kluczowe punkty wytycznych:
+\begin{itemize}
+    \item obsługa do 6 kanałów pomiarowych (wylewów) z możliwością wyboru aktywnych kanałów,
+    \item obsługa kroku czasowego (domyślnie \(0{,}3\,\mathrm{s}\)),
+    \item wybór sposobu wyznaczania \(C_\infty\): wartość maksymalna lub wartość końcowa,
+    \item wyznaczanie czasu przejścia \(\Delta t = t_{0.8} - t_{0.2}\).
+\end{itemize}
+
+\section{Podstawa teoretyczna}
+\subsection{Krzywa RTD typu F}
+Krzywa RTD typu F opisuje odpowiedź układu przepływowego na skokową zmianę stężenia znacznika na wlewie. W modelu fizycznym COS sygnałem pomiarowym jest przewodność elektryczna rejestrowana na wylewach.
+
+\subsection{Normalizacja stężenia}
+Do porównywania różnych wariantów eksperymentu stosuje się stężenie bezwymiarowe:
+\begin{equation}
+    C^*(t)=\frac{C(t)-C_0}{C_\infty-C_0},
+\end{equation}
+gdzie:
+\begin{itemize}
+    \item \(C(t)\) -- chwilowa przewodność,
+    \item \(C_0\) -- przewodność początkowa,
+    \item \(C_\infty\) -- przewodność odniesienia (maksymalna lub końcowa).
+\end{itemize}
+
+\subsection{Strefa przejściowa}
+Zgodnie z wytycznymi strefę przejściową dla danego wylewu wyznacza zależność:
+\begin{equation}
+    \Delta t = t_{0.8} - t_{0.2},
+\end{equation}
+gdzie \(t_{0.2}\) i \(t_{0.8}\) to czasy osiągnięcia poziomów \(C^*=0{,}2\) oraz \(C^*=0{,}8\).
+
+\section{Opis implementacji}
+\subsection{Technologie}
+Do realizacji projektu wykorzystano:
+\begin{itemize}
+    \item Python 3,
+    \item Streamlit (interfejs aplikacji),
+    \item Pandas i NumPy (obróbka danych),
+    \item Matplotlib (wizualizacja),
+    \item unittest (testy logiki).
+\end{itemize}
+
+\subsection{Struktura projektu}
+\begin{itemize}
+    \item \texttt{app.py} -- interfejs użytkownika i główny przepływ analizy,
+    \item \texttt{rtd\_analyzer/data\_processing.py} -- funkcje obliczeniowe i walidacja danych,
+    \item \texttt{tests/test\_data\_processing.py} -- testy jednostkowe,
+    \item \texttt{Testing/TEST1.csv}, \texttt{Testing/TEST2.csv} -- dane wejściowe do weryfikacji,
+    \item \texttt{Dockerfile} -- konteneryzacja aplikacji.
+\end{itemize}
+
+\subsection{Algorytm przetwarzania}
+\begin{enumerate}
+    \item Wczytanie CSV (separator \texttt{;} i przecinek dziesiętny).
+    \item Wybór kanałów i odrzucenie wskazanej liczby wierszy.
+    \item Budowa osi czasu na podstawie interwału próbkowania.
+    \item Przeliczenie sygnału na \(C^*\) dla każdego kanału.
+    \item Wyznaczenie \(t_{0.2}\) i \(t_{0.8}\) przez interpolację liniową.
+    \item Obliczenie \(\Delta t\) i prezentacja wyników tabelarycznych.
+\end{enumerate}
+
+\section{Przebieg badań i wyniki}
+\subsection{Ustawienia analizy}
+Do przykładowych obliczeń przyjęto:
+\begin{itemize}
+    \item odrzucenie pierwszego pomiaru,
+    \item brak dodatkowego przesunięcia startu,
+    \item krok czasowy \(0{,}3\,\mathrm{s}\),
+    \item \(C_\infty\) jako wartość maksymalna (\texttt{max}),
+    \item kanały: Wylew 1--4.
+\end{itemize}
+
+\subsection{Wyniki dla danych testowych}
+\begin{table}[H]
+    \centering
+    \caption{Wyniki dla \texttt{TEST1.csv}}
+    \begin{tabular}{lccc}
+        \toprule
+        Kanał & \(t_{0.2}\) [s] & \(t_{0.8}\) [s] & \(\Delta t\) [s] \\
+        \midrule
+        Wylew 1 & 8.661 & 68.405 & 59.744 \\
+        Wylew 2 & 4.726 & 61.343 & 56.617 \\
+        Wylew 3 & 5.234 & 60.780 & 55.545 \\
+        Wylew 4 & 8.520 & 68.013 & 59.493 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \caption{Wyniki dla \texttt{TEST2.csv}}
+    \begin{tabular}{lccc}
+        \toprule
+        Kanał & \(t_{0.2}\) [s] & \(t_{0.8}\) [s] & \(\Delta t\) [s] \\
+        \midrule
+        Wylew 1 & 9.410 & 56.904 & 47.494 \\
+        Wylew 2 & 4.194 & 46.674 & 42.480 \\
+        Wylew 3 & 4.406 & 50.937 & 46.531 \\
+        Wylew 4 & 8.829 & 56.748 & 47.919 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Interpretacja}
+W analizowanych danych wszystkie wybrane kanały osiągają poprawne przecięcia poziomów 0.2 oraz 0.8, co pozwala obliczyć strefę przejściową. Otrzymane wartości \(\Delta t\) różnią się między testami, co potwierdza przydatność aplikacji do porównywania wariantów przepływu.
+
+\section{Instrukcja uruchomienia}
+\subsection{Uruchomienie lokalne}
+\begin{verbatim}
+pip install -r requirements.txt
+python -m unittest discover -s tests -v
+streamlit run app.py
+\end{verbatim}
+
+\subsection{Uruchomienie w kontenerze Docker}
+\begin{verbatim}
+docker build -t rtd-analyzer-cos .
+docker run --rm -p 8080:8080 rtd-analyzer-cos
+\end{verbatim}
+
+\section{Wnioski końcowe}
+\begin{enumerate}
+    \item Opracowany program spełnia wymagania zadania dotyczące obróbki danych RTD typu F dla modelu COS.
+    \item Aplikacja umożliwia powtarzalną analizę danych i porównywanie wariantów eksperymentu.
+    \item Zaimplementowano kompletne środowisko pracy: interfejs użytkownika, logikę obliczeń, testy oraz wersję kontenerową.
+    \item Narzędzie może być bezpośrednio wykorzystane jako element dokumentacji laboratoryjnej i demonstracji działania programu.
+\end{enumerate}
+
+\section*{Bibliografia}
+\begin{enumerate}
+    \item Materiały prowadzącego: \texttt{PDF/Wytyczne Program COS.pdf}.
+    \item Materiały prowadzącego: \texttt{PDF/Krzywa RTD typu F\_COS.pdf}.
+    \item Materiały prowadzącego: \texttt{PDF/Krzywe RTD czas bezwymiarowy.pdf}.
+    \item Materiały prowadzącego: \texttt{PDF/Przeliczanie stężenia znacznika na wartości bezwymiarowe.pdf}.
+\end{enumerate}
+
+\end{document}
+
