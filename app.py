@@ -137,6 +137,9 @@ def main() -> None:
         "C* [-]",
         show_limits=st.session_state["show_limits"],
     )
+    png_buffer = io.BytesIO()
+    fig_norm.savefig(png_buffer, format="png", dpi=150)
+    png_buffer.seek(0)
     st.pyplot(fig_norm, clear_figure=True)
 
     if st.button("Odczytaj wartości strefy przejściowej"):
@@ -183,9 +186,6 @@ def main() -> None:
             mime="text/csv",
         )
 
-    png_buffer = io.BytesIO()
-    fig_norm.savefig(png_buffer, format="png", dpi=150)
-    png_buffer.seek(0)
     st.download_button(
         "Zapisz wykres C* (PNG)",
         data=png_buffer.getvalue(),
