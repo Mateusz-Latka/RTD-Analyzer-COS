@@ -7,7 +7,7 @@ Projekt realizuje wymagania z materiałów w folderze `PDF` i pozwala przejść 
 
 Celem projektu było opracowanie aplikacji, która:
 - wczytuje dane z eksperymentów modelowych COS z plików CSV,
-- umożliwia odrzucenie wskazanych pomiarów i definiowanie startu krzywych,
+- umożliwia odrzucenie wskazanych pomiarów od początku serii,
 - rysuje krzywe RTD dla wybranych kanałów (wylewów),
 - przelicza dane na postać bezwymiarową,
 - wyznacza strefę przejściową dla każdego kanału:
@@ -36,7 +36,6 @@ W analizie zastosowano:
 
 ### 3.2 Przygotowanie danych
 - ręczne odrzucanie wybranej liczby wierszy od początku,
-- dodatkowe przesunięcie startu krzywych,
 - budowanie osi czasu w sekundach na podstawie interwału (domyślnie `0.3 s`).
 
 ### 3.3 Analiza
@@ -79,6 +78,15 @@ Do sprawdzenia poprawności działania wykorzystano dane z `Testing/` oraz testy
 
 ## 6. Uruchomienie lokalne
 
+### Pobranie projektu
+
+```bash
+git clone https://github.com/Mateusz-Latka/RTD-Analyzer-COS.git
+cd RTD-Analyzer-COS
+```
+
+### Instalacja i start
+
 ```bash
 pip install -r requirements.txt
 python -m unittest discover -s tests -v
@@ -86,6 +94,10 @@ streamlit run app.py
 ```
 
 Po uruchomieniu aplikacja jest dostępna lokalnie pod adresem wskazanym przez Streamlit.
+
+### Tryb offline
+
+Program działa offline po lokalnej instalacji zależności. Do codziennej pracy nie wymaga połączenia z internetem (internet jest potrzebny tylko do jednorazowego pobrania repozytorium i pakietów Python).
 
 ## 7. Uruchomienie w Dockerze
 

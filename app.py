@@ -34,6 +34,8 @@ def _plot_curves(
         ax.axhline(0.8, color="black", linestyle="--", linewidth=1.0, label="0.8")
     ax.set_xlabel("Czas [s]")
     ax.set_ylabel(ylabel)
+    ax.set_xlim(left=0)
+    ax.set_ylim(bottom=0)
     ax.grid(True, alpha=0.3)
     ax.legend()
     fig.tight_layout()
@@ -60,7 +62,7 @@ def main() -> None:
 
     channels = channel_columns(raw_df)
     st.subheader("Ustawienia")
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
     with col1:
         discard_rows = st.number_input(
             "Ilość pomiarów do odrzucenia (wiersze od początku)",
@@ -69,13 +71,6 @@ def main() -> None:
             step=1,
         )
     with col2:
-        start_offset = st.number_input(
-            "Przesunięcie startu krzywych (dodatkowe wiersze)",
-            min_value=0,
-            value=0,
-            step=1,
-        )
-    with col3:
         sample_interval_s = st.number_input(
             "Interwał pomiaru [s]",
             min_value=0.001,
@@ -106,7 +101,7 @@ def main() -> None:
         window_df = prepare_experiment_window(
             raw_df,
             discard_rows=int(discard_rows),
-            start_offset=int(start_offset),
+            start_offset=0,
             sample_interval_s=float(sample_interval_s),
         )
         norm_df = normalize_dimensionless(window_df, selected_channels, c_infinity_mode)
@@ -130,11 +125,11 @@ def main() -> None:
         if st.button("Ukryj granice 0,2 i 0,8"):
             st.session_state["show_limits"] = False
 
-    st.subheader("Wykres 2: stężenie bezwymiarowe C*")
+    st.subheader("Wykres 2: stężenie bezwymiarowe Cbezwym.")
     fig_norm = _plot_curves(
         norm_df[["czas_s", *selected_channels]],
         selected_channels,
-        "C* [-]",
+        "Cbezwym. [-]",
         show_limits=st.session_state["show_limits"],
     )
     png_buffer = io.BytesIO()
@@ -187,7 +182,7 @@ def main() -> None:
         )
 
     st.download_button(
-        "Zapisz wykres C* (PNG)",
+        "Zapisz wykres Cbezwym. (PNG)",
         data=png_buffer.getvalue(),
         file_name=f"{base_name}_wykres_Cstar.png",
         mime="image/png",
